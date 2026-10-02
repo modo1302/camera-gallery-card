@@ -123,6 +123,16 @@ export const cardStyles = css`
     & :is(.divider, .objfilters, .tthumbs, .datepill, .seg) {
       display: none !important;
     }
+    & .panel.side {
+      display: flex;
+    }
+    & .side-preview {
+      flex: 1;
+      min-height: 0;
+    }
+    & .side-gallery {
+      display: none;
+    }
   }
 
   .panel {
@@ -137,6 +147,104 @@ export const cardStyles = css`
   }
   .divider {
     display: none;
+  }
+
+  /* ── Side-by-side layout (preview_position: left | right) ──────────
+   * Preview column drives the row height; the gallery column is pinned to
+   * that height (height:0 + min-height:100%) and its thumbnail grid scrolls.
+   * Tunables: --cgc-side-gallery-width, --cgc-side-grid-columns. Cards
+   * narrower than 520px fall back to a stacked layout. */
+  .root.side-layout {
+    container-type: inline-size;
+  }
+  .panel.side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--cgc-side-gallery-width, 38%);
+    grid-template-areas: "preview gallery";
+    column-gap: var(--cgc-row-gap, 8px);
+    align-items: stretch;
+
+    &.side-right {
+      grid-template-columns: var(--cgc-side-gallery-width, 38%) minmax(0, 1fr);
+      grid-template-areas: "gallery preview";
+    }
+    &:is(.no-preview, .no-gallery) {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: none;
+    }
+    &.no-preview .side-gallery {
+      height: auto;
+      min-height: 0;
+    }
+  }
+  .side-preview {
+    grid-area: preview;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cgc-row-gap, 8px);
+    min-width: 0;
+  }
+  .side-gallery {
+    grid-area: gallery;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cgc-row-gap, 8px);
+    min-width: 0;
+    height: 0;
+    min-height: 100%;
+    overflow: hidden;
+
+    & > :not(.timeline) {
+      flex-shrink: 0;
+    }
+    & .topbar {
+      flex-wrap: wrap;
+    }
+    & .timeline {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    & .tthumbs-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+
+      &.vertical,
+      &.empty.vertical {
+        min-height: 0;
+      }
+    }
+    & .tthumbs.vertical {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      grid-template-columns: repeat(var(--cgc-side-grid-columns, 2), minmax(0, 1fr));
+      /* The grid has a definite height here, so plain auto rows would be
+       * squeezed to fit it instead of overflowing into the scroll area. */
+      grid-auto-rows: max-content;
+      align-content: start;
+    }
+  }
+  @container (max-width: 520px) {
+    .panel.side,
+    .panel.side.side-left,
+    .panel.side.side-right {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "preview" "gallery";
+      row-gap: var(--cgc-row-gap, 8px);
+    }
+    .side-gallery {
+      height: auto;
+      min-height: 0;
+
+      & .tthumbs.vertical {
+        max-height: var(--cgc-thumbs-max-h, 320px);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
   }
 
   .preview {

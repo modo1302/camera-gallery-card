@@ -285,7 +285,7 @@ Then in the card editor: **General → Delete services → Frigate** → pick `r
 | `frigate_url` | Optional direct Frigate REST API URL (e.g. `http://192.168.1.x:5000`). If omitted, the card uses the HA Frigate integration via WebSocket |
 | **Gallery view** | |
 | `start_mode` | Default view: `gallery` or `live` |
-| `preview_position` | `top` or `bottom` |
+| `preview_position` | `top`, `bottom`, `left` or `right`. `left`/`right` place the preview beside a scrolling thumbnail grid (gallery on the opposite side); tune with the CSS variables `--cgc-side-gallery-width` (default `38%`) and `--cgc-side-grid-columns` (default `2`). Cards narrower than 520px stack vertically. |
 | `clean_mode` | Hide overlays when preview is closed |
 | `object_fit` | Media display mode: `cover` or `contain` |
 | `aspect_ratio` | Preview aspect ratio: `16:9`, `4:3`, or `1:1` |

@@ -1356,8 +1356,15 @@ class CameraGalleryCard extends LitElement {
     });
   }
 
+  _isPreviewSide() {
+    const pos = this.config?.preview_position;
+    return pos === "left" || pos === "right";
+  }
+
   _isThumbLayoutVertical() {
-    return this.config?.thumb_layout === "vertical";
+    // Side-by-side layouts always use the scrolling grid: a horizontal strip
+    // next to the preview would leave the column mostly empty.
+    return this.config?.thumb_layout === "vertical" || this._isPreviewSide();
   }
 
   // Options bag for the pure datetime-parsing functions.
@@ -5372,6 +5379,7 @@ class CameraGalleryCard extends LitElement {
     const previewGated = !!this.config?.clean_mode;
     const previewOpen = !previewGated || !!this._previewOpen;
     const previewAtBottom = this.config?.preview_position === "bottom";
+    const previewSide = this._isPreviewSide() ? this.config.preview_position : null;
 
     const selectedNeedsResolve =
       !!selected && usingMediaSource && isMediaSourceId(selected);
@@ -5982,13 +5990,7 @@ class CameraGalleryCard extends LitElement {
       </div>
     `;
 
-    return html`
-      <div class="root" style="${rootVars}">
-        <div class="panel" style="width:${PREVIEW_WIDTH}; margin:0 auto;">
-          ${!previewAtBottom && showPreviewSection
-            ? html`${previewBlock}${controlsFixedBlock}${showGalleryControls && !fixedMode ? html`<div class="divider"></div>` : html``}`
-            : html``}
-
+    const galleryBlock = html`
           ${showGalleryControls ? (() => {
             // Order from `toolbar_order` config; default to catalog order.
             // Enabled state stays in the existing `show_*` keys.
@@ -6108,12 +6110,9 @@ class CameraGalleryCard extends LitElement {
 
             ${thumbsBlock}
           ` : html``}
+    `;
 
-          ${previewAtBottom && showPreviewSection
-            ? html`${showGalleryControls && !fixedMode ? html`<div class="divider"></div>` : html``}${previewBlock}${controlsFixedBlock}`
-            : html``}
-        </div>
-
+    const overlaysBlock = html`
         ${this._showBulkHint && this._selectMode
           ? html`
               <div class="bulk-floating-hint">
@@ -6164,6 +6163,37 @@ class CameraGalleryCard extends LitElement {
             </button>
           </div>
         ` : html``}
+    `;
+
+    if (previewSide) {
+      return html`
+        <div class="root side-layout" style="${rootVars}">
+          <div class="panel side side-${previewSide} ${showPreviewSection ? "" : "no-preview"} ${showGalleryControls ? "" : "no-gallery"}" style="width:${PREVIEW_WIDTH}; margin:0 auto;">
+            ${showPreviewSection
+              ? html`<div class="side-preview">${previewBlock}${controlsFixedBlock}</div>`
+              : html``}
+            ${showGalleryControls ? html`<div class="side-gallery">${galleryBlock}</div>` : html``}
+          </div>
+          ${overlaysBlock}
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="root" style="${rootVars}">
+        <div class="panel" style="width:${PREVIEW_WIDTH}; margin:0 auto;">
+          ${!previewAtBottom && showPreviewSection
+            ? html`${previewBlock}${controlsFixedBlock}${showGalleryControls && !fixedMode ? html`<div class="divider"></div>` : html``}`
+            : html``}
+
+          ${galleryBlock}
+
+          ${previewAtBottom && showPreviewSection
+            ? html`${showGalleryControls && !fixedMode ? html`<div class="divider"></div>` : html``}${previewBlock}${controlsFixedBlock}`
+            : html``}
+        </div>
+
+        ${overlaysBlock}
 
       </div>
     `;
@@ -8651,10 +8681,12 @@ class CameraGalleryCardEditor extends HTMLElement {
 
         <div class="row">
           <div class="lbl">Preview position</div>
-          <div class="desc">Where the preview pane sits relative to the thumbnail strip.</div>
+          <div class="desc">Where the preview pane sits relative to the thumbnails. <code>Left</code> / <code>Right</code> put the preview beside a scrolling thumbnail grid (stacks vertically on narrow cards).</div>
           <div class="segwrap">
             <button class="seg ${previewPos === "top" ? "on" : ""}" data-ppos="top">Top</button>
             <button class="seg ${previewPos === "bottom" ? "on" : ""}" data-ppos="bottom">Bottom</button>
+            <button class="seg ${previewPos === "left" ? "on" : ""}" data-ppos="left">Left</button>
+            <button class="seg ${previewPos === "right" ? "on" : ""}" data-ppos="right">Right</button>
           </div>
         </div>
 

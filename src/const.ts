@@ -10,7 +10,7 @@
 // runtime checker and the type.
 
 export const SOURCE_MODES = ["sensor", "media", "combined"] as const;
-export const PREVIEW_POSITIONS = ["top", "bottom"] as const;
+export const PREVIEW_POSITIONS = ["top", "bottom", "left", "right"] as const;
 export const THUMB_BAR_POSITIONS = ["top", "bottom", "hidden"] as const;
 export const THUMB_LAYOUTS = ["horizontal", "vertical"] as const;
 export const THUMB_SORT_ORDERS = ["newest", "oldest"] as const;
