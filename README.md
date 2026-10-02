@@ -285,8 +285,8 @@ Then in the card editor: **General → Delete services → Frigate** → pick `r
 | `frigate_url` | Optional direct Frigate REST API URL (e.g. `http://192.168.1.x:5000`). If omitted, the card uses the HA Frigate integration via WebSocket |
 | **Gallery view** | |
 | `start_mode` | Default view: `gallery` or `live` |
-| `preview_position` | `top`, `bottom`, `left` or `right`. `left`/`right` place the preview beside a scrolling thumbnail grid as tall as the preview (cards narrower than 520px stack vertically). `thumb_layout` does not apply there; use `side_grid_columns` and `thumb_size`. Gallery width: CSS variable `--cgc-side-gallery-width` (default `38%`). |
-| `side_grid_columns` | Columns of the side thumbnail grid (`left`/`right` only). `0` (default) = automatic, as many columns as fit at `thumb_size`; `1`–`8` = fixed |
+| `preview_position` | `top`, `bottom`, `left` or `right`. `left`/`right` place the preview beside a scrolling thumbnail grid as tall as the preview (cards narrower than 520px stack vertically). `thumb_layout` does not apply there; use `side_grid_columns` and `thumb_size`. The gallery width can be forced with the CSS variable `--cgc-side-gallery-width` in `style_variables`. |
+| `side_grid_columns` | Columns of the side thumbnail grid (`left`/`right` only). `0` (default) = automatic: the gallery column is 38% wide and fits as many `thumb_size` columns as it can. `1`–`8` = fixed: the gallery column is exactly that many `thumb_size` thumbnails wide (max 60% of the card) and the preview fills the rest |
 | `clean_mode` | Hide overlays when preview is closed |
 | `object_fit` | Media display mode: `cover` or `contain` |
 | `aspect_ratio` | Preview aspect ratio: `16:9`, `4:3`, or `1:1` |

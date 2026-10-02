@@ -5380,12 +5380,18 @@ class CameraGalleryCard extends LitElement {
     const previewOpen = !previewGated || !!this._previewOpen;
     const previewAtBottom = this.config?.preview_position === "bottom";
     const previewSide = this._isPreviewSide() ? this.config.preview_position : null;
-    // Side grid: a fixed column count, or (0 = auto) as many columns as fit
-    // at `thumb_size` so the Size option keeps working in this layout.
+    // Side grid: with a fixed column count the gallery column is sized to
+    // fit exactly that many `thumb_size` thumbnails (capped so the preview
+    // keeps at least 40% of the card) and the preview takes the rest. With
+    // 0 (auto) the column keeps its default width and fits as many
+    // `thumb_size` columns as it can.
     const sideGridCols = Number(this.config.side_grid_columns) || 0;
     const sideGridTemplate = sideGridCols > 0
       ? `repeat(${sideGridCols}, minmax(0, 1fr))`
       : `repeat(auto-fill, minmax(min(100%, ${this.config.thumb_size}px), 1fr))`;
+    const sideGalleryWidth = sideGridCols > 0
+      ? `min(${sideGridCols * this.config.thumb_size + (sideGridCols - 1) * THUMB_GAP}px, 60%)`
+      : "38%";
 
     const selectedNeedsResolve =
       !!selected && usingMediaSource && isMediaSourceId(selected);
@@ -5421,6 +5427,7 @@ class CameraGalleryCard extends LitElement {
       --cgc-pill-size:${this.config.pill_size}px;
       --cgc-row-gap:${this.config.row_gap}px;
       --cgc-side-grid-template:${sideGridTemplate};
+      --cgc-side-gallery-width:${sideGalleryWidth};
       ${this.config.style_variables || ""}
     `;
 
@@ -7968,7 +7975,7 @@ class CameraGalleryCardEditor extends HTMLElement {
       return v === "oldest" ? "oldest" : "newest";
     })();
 
-    const thumbSizeMuted = previewSideLayout ? sideGridCols > 0 : thumbLayout === "vertical";
+    const thumbSizeMuted = !previewSideLayout && thumbLayout === "vertical";
 
     const allServices = this._hass?.services || {};
     const shellCmds = Object.keys(allServices.shell_command || {})
@@ -9509,7 +9516,7 @@ class CameraGalleryCardEditor extends HTMLElement {
         ${previewSideLayout ? `
         <div class="row">
           <div class="lbl">Columns</div>
-          <div class="desc">Thumbnail grid columns beside the preview. <code>0</code> = automatic: as many columns as fit at the Size below.</div>
+          <div class="desc">Thumbnail grid columns beside the preview. The gallery column is as wide as Columns × Size and the preview fills the rest. <code>0</code> = automatic: fixed-width gallery with as many columns as fit at Size.</div>
           <div class="ed-input-row"><input type="number" class="ed-input" id="sidecols" min="0" max="8" /></div>
         </div>
         ` : ""}
@@ -9518,7 +9525,7 @@ class CameraGalleryCardEditor extends HTMLElement {
           <div class="lbl">Size</div>
           <div class="desc">${previewSideLayout
             ? (sideGridCols > 0
-              ? "Ignored while Columns is set — set Columns to 0 to size the grid by this value."
+              ? "Width of each thumbnail column, in pixels — sets how wide the gallery is next to the preview."
               : "Minimum width of each thumbnail in the side grid, in pixels; the column count follows from it.")
             : "Size of each thumbnail, in pixels."}</div>
           <div class="ed-input-row"><input type="number" class="ed-input" id="thumb" /><span class="ed-suffix">px</span></div>

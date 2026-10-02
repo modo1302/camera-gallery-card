@@ -152,9 +152,9 @@ export const cardStyles = css`
   /* ── Side-by-side layout (preview_position: left | right) ──────────
    * Preview column drives the row height; the gallery column is pinned to
    * that height (height:0 + min-height:100%) and its thumbnail grid scrolls.
-   * Columns come from side_grid_columns / thumb_size via
-   * --cgc-side-grid-template; gallery width is tunable with
-   * --cgc-side-gallery-width. Cards narrower than 520px stack. */
+   * --cgc-side-gallery-width and --cgc-side-grid-template are set per render
+   * from side_grid_columns / thumb_size (style_variables can override the
+   * width). Cards narrower than 520px stack. */
   .root.side-layout {
     container-type: inline-size;
   }
@@ -200,6 +200,23 @@ export const cardStyles = css`
     }
     & .topbar {
       flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    /* Narrow gallery columns: the day pill gets its own full-width row with
+     * tighter padding; the toolbar buttons wrap underneath. */
+    & .topbar .datepill {
+      order: -1;
+      flex: 1 1 100%;
+    }
+    & .topbar .dateinfo {
+      padding: 0;
+      font-size: 12px;
+    }
+    & .topbar .datepill .iconbtn {
+      width: 26px;
+      min-width: 0;
+      padding: 0;
+      flex: 0 0 auto;
     }
     & .timeline {
       flex: 1 1 auto;
