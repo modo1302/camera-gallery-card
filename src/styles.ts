@@ -152,8 +152,9 @@ export const cardStyles = css`
   /* ── Side-by-side layout (preview_position: left | right) ──────────
    * Preview column drives the row height; the gallery column is pinned to
    * that height (height:0 + min-height:100%) and its thumbnail grid scrolls.
-   * Tunables: --cgc-side-gallery-width, --cgc-side-grid-columns. Cards
-   * narrower than 520px fall back to a stacked layout. */
+   * Columns come from side_grid_columns / thumb_size via
+   * --cgc-side-grid-template; gallery width is tunable with
+   * --cgc-side-gallery-width. Cards narrower than 520px stack. */
   .root.side-layout {
     container-type: inline-size;
   }
@@ -221,7 +222,7 @@ export const cardStyles = css`
       flex: 1 1 auto;
       min-height: 0;
       max-height: none;
-      grid-template-columns: repeat(var(--cgc-side-grid-columns, 2), minmax(0, 1fr));
+      grid-template-columns: var(--cgc-side-grid-template, repeat(2, minmax(0, 1fr)));
       /* The grid has a definite height here, so plain auto rows would be
        * squeezed to fit it instead of overflowing into the scroll area. */
       grid-auto-rows: max-content;
@@ -242,7 +243,6 @@ export const cardStyles = css`
 
       & .tthumbs.vertical {
         max-height: var(--cgc-thumbs-max-h, 320px);
-        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
   }

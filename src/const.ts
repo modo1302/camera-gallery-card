@@ -66,6 +66,9 @@ export const THUMB_SIZE = 86;
 //   FRAME_PCT, BAR_OPACITY: percentages, clamp to [0, 100].
 export const THUMB_SIZE_MIN = 40;
 export const THUMB_SIZE_MAX = 220;
+/** Side layout grid columns; 0 = auto-fit by `thumb_size`. */
+export const SIDE_GRID_COLUMNS_MAX = 8;
+export const DEFAULT_SIDE_GRID_COLUMNS = 0;
 export const PILL_SIZE_MIN = 10;
 export const PILL_SIZE_MAX = 28;
 export const PILL_SIZE_DEFAULT = 14;

@@ -5380,6 +5380,12 @@ class CameraGalleryCard extends LitElement {
     const previewOpen = !previewGated || !!this._previewOpen;
     const previewAtBottom = this.config?.preview_position === "bottom";
     const previewSide = this._isPreviewSide() ? this.config.preview_position : null;
+    // Side grid: a fixed column count, or (0 = auto) as many columns as fit
+    // at `thumb_size` so the Size option keeps working in this layout.
+    const sideGridCols = Number(this.config.side_grid_columns) || 0;
+    const sideGridTemplate = sideGridCols > 0
+      ? `repeat(${sideGridCols}, minmax(0, 1fr))`
+      : `repeat(auto-fill, minmax(min(100%, ${this.config.thumb_size}px), 1fr))`;
 
     const selectedNeedsResolve =
       !!selected && usingMediaSource && isMediaSourceId(selected);
@@ -5414,6 +5420,7 @@ class CameraGalleryCard extends LitElement {
       --cgc-object-fit:${this.config.object_fit || "cover"};
       --cgc-pill-size:${this.config.pill_size}px;
       --cgc-row-gap:${this.config.row_gap}px;
+      --cgc-side-grid-template:${sideGridTemplate};
       ${this.config.style_variables || ""}
     `;
 
@@ -6285,7 +6292,7 @@ const CGC_CONFIG_KEY_ORDER = [
   "source_mode", "entities", "media_sources", "frigate_url",
   "path_datetime_format", "max_media",
   // ─── Gallery ───
-  "start_mode", "preview_position", "preview_height", "object_fit",
+  "start_mode", "preview_position", "side_grid_columns", "preview_height", "object_fit",
   "controls_mode", "clean_mode", "show_camera_title", "persistent_controls",
   "autoplay", "auto_muted",
   "show_today", "show_media_filter", "show_favorite", "show_live",
@@ -7938,6 +7945,8 @@ class CameraGalleryCardEditor extends HTMLElement {
     })();
 
     const previewPos = String(c.preview_position || "top");
+    const previewSideLayout = previewPos === "left" || previewPos === "right";
+    const sideGridCols = this._clampInt(this._numInt(c.side_grid_columns, 0), 0, 8);
     const objectFit = String(c.object_fit || "cover");
 
     const thumbBarPos = (() => {
@@ -7959,7 +7968,7 @@ class CameraGalleryCardEditor extends HTMLElement {
       return v === "oldest" ? "oldest" : "newest";
     })();
 
-    const thumbSizeMuted = thumbLayout === "vertical";
+    const thumbSizeMuted = previewSideLayout ? sideGridCols > 0 : thumbLayout === "vertical";
 
     const allServices = this._hass?.services || {};
     const shellCmds = Object.keys(allServices.shell_command || {})
@@ -9486,18 +9495,32 @@ class CameraGalleryCardEditor extends HTMLElement {
       `;
 
       const layoutBody = `
-        <div class="row">
+        <div class="row ${previewSideLayout ? "muted" : ""}">
           <div class="lbl">Layout</div>
-          <div class="desc">Horizontal arranged the thumbnails horizontally; Vertical... well...</div>
+          <div class="desc">${previewSideLayout
+            ? "Not used while the preview position is Left / Right — thumbnails then always form a scrolling grid beside the preview. Use Columns and Size below."
+            : "Horizontal arranged the thumbnails horizontally; Vertical... well..."}</div>
           <div class="segwrap">
-            <button class="seg ${thumbLayout === "horizontal" ? "on" : ""}" data-tlayout="horizontal">Horizontal</button>
-            <button class="seg ${thumbLayout === "vertical" ? "on" : ""}" data-tlayout="vertical">Vertical</button>
+            <button class="seg ${thumbLayout === "horizontal" ? "on" : ""}" data-tlayout="horizontal" ${previewSideLayout ? "disabled" : ""}>Horizontal</button>
+            <button class="seg ${thumbLayout === "vertical" ? "on" : ""}" data-tlayout="vertical" ${previewSideLayout ? "disabled" : ""}>Vertical</button>
           </div>
         </div>
 
+        ${previewSideLayout ? `
+        <div class="row">
+          <div class="lbl">Columns</div>
+          <div class="desc">Thumbnail grid columns beside the preview. <code>0</code> = automatic: as many columns as fit at the Size below.</div>
+          <div class="ed-input-row"><input type="number" class="ed-input" id="sidecols" min="0" max="8" /></div>
+        </div>
+        ` : ""}
+
         <div class="row ${thumbSizeMuted ? "muted" : ""}">
           <div class="lbl">Size</div>
-          <div class="desc">Size of each thumbnail, in pixels.</div>
+          <div class="desc">${previewSideLayout
+            ? (sideGridCols > 0
+              ? "Ignored while Columns is set — set Columns to 0 to size the grid by this value."
+              : "Minimum width of each thumbnail in the side grid, in pixels; the column count follows from it.")
+            : "Size of each thumbnail, in pixels."}</div>
           <div class="ed-input-row"><input type="number" class="ed-input" id="thumb" /><span class="ed-suffix">px</span></div>
         </div>
 
@@ -11989,6 +12012,7 @@ details summary { user-select: none; }
     const delserviceEl = $("delservice");
 
     const thumbEl = $("thumb");
+    const sideColsEl = $("sidecols");
     const maxmediaEl = $("maxmedia");
     const thumbpctEl = $("thumbpct");
     const thumbpctvalEl = $("thumbpctval");
@@ -12001,6 +12025,7 @@ details summary { user-select: none; }
     this._setControlValue(mediaEl, mediaSourcesText);
     this._setControlValue(pathFmtEl, pathDatetimeFormat);
     this._setControlValue(thumbEl, String(thumbSize));
+    this._setControlValue(sideColsEl, String(sideGridCols));
     this._setControlValue(maxmediaEl, String(maxMedia));
     this._setControlValue(thumbpctEl, thumbFramePct);
     if (autoplayEl) autoplayEl.checked = autoplay;
@@ -12259,6 +12284,14 @@ details summary { user-select: none; }
     thumbEl?.addEventListener("blur", () =>
       commitNumberField("thumb_size", thumbEl, 140, true)
     );
+
+    const commitSideCols = () => {
+      const n = this._clampInt(this._numInt(sideColsEl?.value, 0), 0, 8);
+      if (sideColsEl) sideColsEl.value = String(n);
+      if (n !== (Number(this._config?.side_grid_columns) || 0)) this._set("side_grid_columns", n);
+    };
+    sideColsEl?.addEventListener("change", commitSideCols);
+    sideColsEl?.addEventListener("blur", commitSideCols);
 
     const pushMaxMedia = (commit = false) => {
       const raw = String(maxmediaEl?.value ?? "").trim();
@@ -13810,7 +13843,7 @@ details summary { user-select: none; }
     }
 
     this._fire();
-    const RENDERS_REQUIRED = new Set(["source_mode", "live_enabled", "live_camera_entities", "live_cameras", "object_filters", "delete_service", "frigate_delete_service", "menu_buttons", "frigate_url", "live_layout", "gallery_pills", "gallery_pills_align", "controls_mode", "bar_position"]);
+    const RENDERS_REQUIRED = new Set(["source_mode", "live_enabled", "live_camera_entities", "live_cameras", "object_filters", "delete_service", "frigate_delete_service", "menu_buttons", "frigate_url", "live_layout", "gallery_pills", "gallery_pills_align", "controls_mode", "bar_position", "preview_position", "thumb_layout", "side_grid_columns"]);
     if (RENDERS_REQUIRED.has(key)) this._scheduleRender();
   }
 

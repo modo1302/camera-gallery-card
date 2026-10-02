@@ -218,6 +218,7 @@ export interface InputConfig {
 
   // ─── Preview ───────────────────────────────────────────────
   preview_position?: string;
+  side_grid_columns?: number;
   clean_mode?: boolean;
   preview_close_on_tap?: boolean;
 

@@ -55,6 +55,7 @@ const UI_ONLY_KEYS = new Set<ConfigKey>([
   "clean_mode",
   "preview_close_on_tap",
   "preview_position",
+  "side_grid_columns",
   "pill_size",
   "row_gap",
   "thumb_bar_position",

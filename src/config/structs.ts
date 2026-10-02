@@ -94,6 +94,8 @@ import {
   THUMB_SORT_ORDERS,
   THUMB_SIZE,
   THUMB_SIZE_MAX,
+  SIDE_GRID_COLUMNS_MAX,
+  DEFAULT_SIDE_GRID_COLUMNS,
   THUMB_SIZE_MIN,
   THUMBNAIL_FRAME_PCT_MAX,
   THUMBNAIL_FRAME_PCT_MIN,
@@ -517,6 +519,7 @@ export const cameraGalleryCardConfigStruct = type({
 
   // ─── Preview ───────────────────────────────────────────────
   preview_position: defaulted(enums(PREVIEW_POSITIONS), DEFAULT_PREVIEW_POSITION),
+  side_grid_columns: defaulted(intInRange(0, SIDE_GRID_COLUMNS_MAX), DEFAULT_SIDE_GRID_COLUMNS),
   clean_mode: defaulted(boolean(), false),
   preview_close_on_tap: defaulted(boolean(), false),
 
